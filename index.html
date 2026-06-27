@@ -249,6 +249,23 @@ h2.title{font-family:'Space Grotesk';font-weight:700;font-size:clamp(2rem,6vw,3.
 .vidbtn:hover{color:var(--fg);border-color:rgba(255,255,255,.2)}
 .vidbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
 
+/* ---------- Sound/Song covered audio player ---------- */
+.ssplayer{position:relative;max-width:440px;margin:18px auto 0;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--bg2);aspect-ratio:16/9}
+.ssplayer #ssFrame,.ssplayer #ssFrame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.ssplayer-cover{position:absolute;inset:0;z-index:5;background:linear-gradient(135deg,#0f0e15,#1a1733);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;padding:18px}
+.ssplayer-cover .nowtag{font-size:.66rem;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:600}
+.ssplayer-cover .nowclip{font-family:'Space Grotesk';font-weight:700;font-size:1.7rem;line-height:1.1}
+.ssplayer-cover .nowtype{font-size:.74rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.1em;min-height:1em}
+.ssplayer-cover .peek{font-size:.72rem;color:var(--muted);margin-top:6px}
+.eq{display:flex;gap:4px;height:30px;align-items:flex-end;margin-top:6px}
+.eq span{width:5px;height:7px;background:var(--accent);border-radius:2px;opacity:.5}
+.eq.on span{opacity:1;animation:eqb .9s ease-in-out infinite}
+.eq.on span:nth-child(2){animation-delay:.15s}
+.eq.on span:nth-child(3){animation-delay:.3s}
+.eq.on span:nth-child(4){animation-delay:.45s}
+.eq.on span:nth-child(5){animation-delay:.6s}
+@keyframes eqb{0%,100%{height:7px}50%{height:30px}}
+
 /* ---------- misc ---------- */
 .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .row.between{justify-content:space-between}
@@ -380,24 +397,24 @@ const CATEGORIES = [
   ]},
 ];
 
-/* Sound or Song — write-down · nostalgic cut */
+/* Sound or Song — write-down · nostalgic cut. vid = YouTube id (audio played behind a cover). */
 const SOUNDSONG = [
-  {type:"song",  title:"Clip 1",  a:"Seven Nation Army — The White Stripes"},
-  {type:"sound", title:"Clip 2",  a:"Nokia ringtone"},
-  {type:"song",  title:"Clip 3",  a:"Mr. Brightside — The Killers"},
-  {type:"sound", title:"Clip 4",  a:"Dial-up modem"},
-  {type:"song",  title:"Clip 5",  a:"Chaiyya Chaiyya — Dil Se (1998)"},
-  {type:"sound", title:"Clip 6",  a:"Windows XP startup chime"},
-  {type:"song",  title:"Clip 7",  a:"Sweet Disposition — The Temper Trap"},
-  {type:"sound", title:"Clip 8",  a:"MSN Messenger nudge / message tone"},
-  {type:"song",  title:"Clip 9",  a:"Abbani Tiyyani — Jagadeka Veerudu Athiloka Sundari (1990)"},
-  {type:"sound", title:"Clip 10", a:"PlayStation startup sound"},
-  {type:"song",  title:"Clip 11", a:"Feel Good Inc. — Gorillaz"},
-  {type:"sound", title:"Clip 12", a:"Cassette tape rewinding"},
-  {type:"song",  title:"Clip 13", a:"Pehla Nasha — Jo Jeeta Wohi Sikandar (1992)"},
-  {type:"song",  title:"Clip 14", a:"Take Me Out — Franz Ferdinand"},
-  {type:"song",  title:"Clip 15", a:"Gajuvaka Pilla — Khadgam (2002)"},
-  {type:"song",  title:"Clip 16", a:"Zombie — The Cranberries"},
+  {type:"song",  title:"Clip 1",  a:"Seven Nation Army — The White Stripes", vid:"0J2QdDbelmY"},
+  {type:"sound", title:"Clip 2",  a:"Nokia ringtone", vid:"Vk4KK-gh0FM"},
+  {type:"song",  title:"Clip 3",  a:"Mr. Brightside — The Killers", vid:"gGdGFtwCNBE"},
+  {type:"sound", title:"Clip 4",  a:"Dial-up modem", vid:"QDS4B0mM-ew"},
+  {type:"song",  title:"Clip 5",  a:"Chaiyya Chaiyya — Dil Se (1998)", vid:"APo73rlxWaE"},
+  {type:"sound", title:"Clip 6",  a:"Windows XP startup chime", vid:"7nQ2oiVqKHw"},
+  {type:"song",  title:"Clip 7",  a:"Sweet Disposition — The Temper Trap", vid:"jxKjOOR9sPU"},
+  {type:"sound", title:"Clip 8",  a:"MSN Messenger nudge / message tone", vid:"XHyJDojwq8w"},
+  {type:"song",  title:"Clip 9",  a:"Abbani Tiyyani — Jagadeka Veerudu Athiloka Sundari (1990)", vid:"w2HwsTCCY7M"},
+  {type:"sound", title:"Clip 10", a:"PlayStation startup sound", vid:"BOPViekdacQ"},
+  {type:"song",  title:"Clip 11", a:"Feel Good Inc. — Gorillaz", vid:"HyHNuVaZJ-k"},
+  {type:"sound", title:"Clip 12", a:"Cassette tape rewinding", vid:"LfbJs4uoHF0"},
+  {type:"song",  title:"Clip 13", a:"Pehla Nasha — Jo Jeeta Wohi Sikandar (1992)", vid:"Ki41AKu0iHc"},
+  {type:"song",  title:"Clip 14", a:"Take Me Out — Franz Ferdinand", vid:"GhCXAiNz9Jo"},
+  {type:"song",  title:"Clip 15", a:"Gaajuvaka Pilla — Nuvvu Nenu (2001)", vid:"nvgAS1LYXSQ"},
+  {type:"song",  title:"Clip 16", a:"Zombie — The Cranberries", vid:"6Ejga4kJUts"},
 ];
 
 /* Picture round — logos & landmarks, progressive reveal, write-down */
@@ -954,9 +971,74 @@ function renderCategory(){
 
 /* ---------- Sound or Song (write-down) ---------- */
 function renderSoundSong(){
-  renderWritedown('soundsong','Sound or Song','Round 03 · Write-down',
-    'Play each clip to the room — I’ll tell you if it’s a sound or a song. Every team writes their answer; mark them all at the reveal. +1 each, no steals.',
-    SOUNDSONG.map((c,idx)=>({...c, key:'ss-'+idx})));
+  const stage=$("#stage"); stage.innerHTML='';
+  state.marks=state.marks||{};
+  const clips = SOUNDSONG.map((c,idx)=>({...c, key:'ss-'+idx, n:idx+1}));
+  stage.appendChild(el(`
+    <div class="fade-in">
+      <div class="kicker">Round 03 · Write-down · audio</div>
+      <h2 class="title">Sound or Song</h2>
+      <p class="lead">Hit play on a clip — only the audio comes through, the screen stays covered so nothing's given away. I'll tell you if it's a sound or a song. Teams write their answers; reveal and mark at the end. +1 each, no steals.</p>
+      <div class="ssplayer" id="ssPlayer">
+        <div id="ssFrame"></div>
+        <div class="ssplayer-cover" id="ssCover">
+          <div class="nowtag">Player</div>
+          <div class="nowclip" id="ssNow">Press ▶ on a clip</div>
+          <div class="nowtype" id="ssType"></div>
+          <div class="eq" id="ssEq"><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="peek">audio only — no peeking 🙈</div>
+        </div>
+      </div>
+      <div class="row" style="justify-content:center;margin-top:10px"><button class="btn ghost sm" id="ssStop">■ Stop audio</button></div>
+      <div class="card" style="margin-top:18px" id="clipList"></div>
+      <div class="q-actions" style="justify-content:space-between">
+        <span class="hint mono" id="tallyLine"></span>
+        <button class="btn" id="finishWD">Finish round →</button>
+      </div>
+    </div>`));
+
+  function playClip(c){
+    $("#ssFrame").innerHTML = `<iframe src="https://www.youtube.com/embed/${c.vid}?autoplay=1&rel=0&playsinline=1" title="clip" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    $("#ssNow").textContent = c.title;
+    $("#ssType").textContent = c.type==='song'?'a song':'a sound';
+    $("#ssEq").classList.add('on');
+  }
+  function stopClip(){ $("#ssFrame").innerHTML=''; $("#ssEq").classList.remove('on'); $("#ssNow").textContent='Stopped'; $("#ssType").textContent=''; }
+  $("#ssStop").onclick=stopClip;
+
+  const listEl=$("#clipList");
+  function draw(){
+    listEl.innerHTML=clips.map(c=>{
+      const m=state.marks[c.key]||{};
+      const open = state.marks[c.key+'_open'];
+      return `<div class="clip ${open?'revealed':''}">
+        <div class="clip-head">
+          <span class="clip-num">${c.n}</span>
+          <span class="clip-type ${c.type}">${c.type}</span>
+          ${open?`<span class="clip-ans">${escapeHtml(c.a)}</span>`:`<span class="clip-title">— hidden —</span>`}
+          <button class="btn sm" data-play="${c.key}">▶ Play</button>
+          <button class="btn ghost sm" data-rev="${c.key}">${open?'Hide':'Reveal'}</button>
+        </div>
+        ${open?`<div class="clip-mark">${state.teams.map(t=>`<button class="mark-btn ${m[t.id]?'on':''}" data-mk="${c.key}" data-t="${t.id}">${escapeHtml(t.name)} ${m[t.id]?'+1':''}</button>`).join('')}<a class="vidbtn" href="https://www.youtube.com/watch?v=${c.vid}" target="_blank" rel="noopener" style="text-decoration:none">open ↗</a></div>`:''}
+      </div>`;
+    }).join('');
+    listEl.querySelectorAll('[data-play]').forEach(b=>b.onclick=()=>{ const c=clips.find(x=>x.key===b.dataset.play); playClip(c); });
+    listEl.querySelectorAll('[data-rev]').forEach(b=>b.onclick=()=>{ const k=b.dataset.rev; state.marks[k+'_open']=!state.marks[k+'_open']; save(); draw(); });
+    listEl.querySelectorAll('[data-mk]').forEach(b=>b.onclick=()=>{
+      const k=b.dataset.mk,tid=+b.dataset.t;
+      state.marks[k]=state.marks[k]||{};
+      if(state.marks[k][tid]){ state.marks[k][tid]=false; adjustScore(tid,-1,{toast:false}); }
+      else{ state.marks[k][tid]=true; adjustScore(tid,1,{toast:false}); }
+      save(); draw();
+    });
+    tally();
+  }
+  function tally(){
+    const counts=state.teams.map(t=>{ let n=0; clips.forEach(c=>{ if(state.marks[c.key]&&state.marks[c.key][t.id])n++; }); return `${t.name}: ${n}`; });
+    $("#tallyLine").textContent=counts.join('  ·  ');
+  }
+  draw();
+  $("#finishWD").onclick=()=>{ stopClip(); renderRoundComplete('soundsong','Sound or Song',()=>render()); };
 }
 
 function renderWritedown(roundKey, title, kicker, lead, clips){
