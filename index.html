@@ -241,6 +241,14 @@ h2.title{font-family:'Space Grotesk';font-weight:700;font-size:clamp(2rem,6vw,3.
 .champion-banner .ce{font-size:3rem}
 .champion-banner .ct{font-family:'Space Grotesk';font-weight:700;font-size:1.8rem;margin-top:6px}
 
+/* ---------- Video interlude ---------- */
+.videoframe{position:relative;width:100%;max-width:760px;margin:18px auto 0;aspect-ratio:16/9;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#000}
+.videoframe iframe{position:absolute;inset:0;width:100%;height:100%}
+.vidpicker{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.vidbtn{padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surf);font-weight:600;font-size:.82rem;color:var(--muted);transition:all .25s}
+.vidbtn:hover{color:var(--fg);border-color:rgba(255,255,255,.2)}
+.vidbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
 /* ---------- misc ---------- */
 .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .row.between{justify-content:space-between}
@@ -298,8 +306,8 @@ input.txt:focus,select.txt:focus{outline:none;border-color:var(--accent)}
    ============================================================ */
 const TEAMS_DEFAULT = [
   {name:"Team 1", members:"Nikhil · Harika · Smrithi · Yashna · Zoltan"},
-  {name:"Team 2", members:"Akshaya · Tanisha · Shruthi · Sahithi · Malaika"},
-  {name:"Team 3", members:"George · Jarred · Shreya · Mahathi · Gaurav"},
+  {name:"Team 2", members:"Akshaya · Tanisha · Sahithi · Malaika · Jarred"},
+  {name:"Team 3", members:"George · Shreya · Mahathi · Gaurav"},
 ];
 
 /* Round 1 — GK, three tiers, one Q per team per tier */
@@ -474,19 +482,20 @@ const EASY_BANK = [
 
 const MARBLE_COLOURS = ["#4D6BFF","#E5604B","#54C28A","#D7B26B","#B86BFF","#FF8FB0"];
 
-/* Sumo Showdown — four fictional wrestlers, winner randomised every bout */
-const SUMOS = [
-  {name:"Tsunami Takeshi", title:"The Tidal Wall", weight:"215 kg", move:"the Belly Bounce", record:"52–4", taunt:"You'll be swept away.", colour:"#4D6BFF", emoji:"🔵"},
-  {name:"Rumblin' Raju", title:"The Hyderabad Hurricane", weight:"198 kg", move:"the Biryani Belly-Flop", record:"48–6", taunt:"Full plate, full power.", colour:"#E5604B", emoji:"🔴"},
-  {name:"Gigantor Gus", title:"The Avalanche", weight:"230 kg", move:"the Ground-Quake Stomp", record:"55–9", taunt:"Feel the earth move.", colour:"#54C28A", emoji:"🟢"},
-  {name:"Bouncy Bao", title:"Little Big Thunder", weight:"175 kg", move:"the Spring-Loaded Slap", record:"61–2", taunt:"Small parcel, big bang.", colour:"#D7B26B", emoji:"🟡"},
+/* Sumo Showdown — now a real-video interlude. Teams back a wrestler, watch, score by hand. */
+const SUMO_VIDEOS = [
+  {id:"m5q5pps_C7M", title:"Your pick",            desc:"The clip you lined up"},
+  {id:"MpbiQCbDKF0", title:"Little guy vs giant",  desc:"Enho throws an opponent twice his size — perfect underdog bet"},
+  {id:"1RNNuu5th_U", title:"Brutal knockouts",     desc:"Compilation of big slams and ring-outs"},
+  {id:"nSNkOTjbExM", title:"Hakuho — the GOAT",    desc:"Best moments of the greatest of all time"},
+  {id:"xaRrlLYFReQ", title:"Normal person vs sumo",desc:"A regular guy takes on the big men — pure comedy"},
 ];
 
 /* ============================================================
    STATE
    ============================================================ */
 let state = {
-  version: 3,
+  version: 4,
   teams: TEAMS_DEFAULT.map((t,i)=>({...t, score:0, id:i})),
   view: "intro",
   done: {},                 // round key -> true
@@ -500,7 +509,7 @@ let state = {
   picReveal: {},            // picture idx -> reveal level
   picImg: {},               // picture idx -> dataURL
 };
-try{ const saved = localStorage.getItem('triviaState'); if(saved){ const p=JSON.parse(saved); if(p && p.version===3){ state = p; } } }catch(e){}
+try{ const saved = localStorage.getItem('triviaState'); if(saved){ const p=JSON.parse(saved); if(p && p.version===4){ state = p; } } }catch(e){}
 function save(){ try{ localStorage.setItem('triviaState', JSON.stringify(state)); }catch(e){} }
 
 /* ============================================================
@@ -512,12 +521,11 @@ const RUNORDER = [
   {key:"category",  label:"Pick Category",    num:"02"},
   {key:"soundsong", label:"Sound or Song",    num:"03"},
   {key:"marble",    label:"Marble Race",      num:"04"},
-  {key:"picture",   label:"Picture / Person", num:"05"},
-  {key:"celebrity", label:"Guess Celebrity",   num:"06"},
-  {key:"sumo",      label:"Sumo Showdown",    num:"07"},
-  {key:"movies",    label:"Movies & TV",      num:"08"},
-  {key:"heads",     label:"Heads or Tails",   num:"09"},
-  {key:"final",     label:"Final Wager",      num:"10"},
+  {key:"celebrity", label:"Guess Celebrity",   num:"05"},
+  {key:"sumo",      label:"Sumo Showdown",    num:"06"},
+  {key:"movies",    label:"Movies & TV",      num:"07"},
+  {key:"heads",     label:"Heads or Tails",   num:"08"},
+  {key:"final",     label:"Final Wager",      num:"09"},
   {key:"bank",      label:"Easy Bank",        num:"+"},
 ];
 
@@ -803,7 +811,7 @@ function renderGK(){
 
 function renderMovies(){
   renderReadAloud('movies',MOVIES,'movIdx',{
-    kicker:"Round 08 · Read-aloud + auction",
+    kicker:"Round 07 · Read-aloud + auction",
     title:"Movies & TV",
     lead:"Screen and streaming. Same rotation: one question per team per tier, climbing in difficulty."
   });
@@ -1080,7 +1088,7 @@ function renderCelebrity(){
 
   stage.appendChild(el(`
     <div class="fade-in revealstage">
-      <div class="kicker">Round 06 · Write-down · zoom reveal</div>
+      <div class="kicker">Round 05 · Write-down · zoom reveal</div>
       <h2 class="title" style="font-size:clamp(1.8rem,5vw,2.8rem)">Guess the Celebrity</h2>
       <p class="lead" style="margin:0 auto 22px">Starts zoomed right into ${escapeHtml(c.feature)}. Reveal a notch at a time if the room's stuck. Teams write their guess; mark them at the reveal. Face ${idx+1} of ${total}.</p>
       <div class="revealbox" id="rbox">
@@ -1131,12 +1139,9 @@ function renderMarble(){
     <div class="fade-in" style="text-align:center">
       <div class="kicker">Round 04 · Interlude · no thinking required</div>
       <h2 class="title">Marble Race</h2>
-      <p class="lead" style="margin:0 auto">Play the video on the big screen. Let each team back a marble first, then award points by hand — tap any team's score on the board up top to adjust it.</p>
-      <div class="card" style="margin-top:26px;max-width:520px;margin-left:auto;margin-right:auto">
-        <div style="font-size:3rem;line-height:1;margin-bottom:14px">🔵 🔴 🟢 🟡</div>
-        <div class="kicker dim">On your marks</div>
-        <p class="hint" style="margin-bottom:0">Scores are yours to set however you like — flat bonus to whoever backed the winner, or a full betting pool. Nothing's automated here.</p>
-      </div>
+      <p class="lead" style="margin:0 auto 4px">Let each team back a marble first, then hit play. Award points by hand afterwards — tap any team's score on the board up top.</p>
+      <div class="videoframe"><iframe src="https://www.youtube.com/embed/A1zIf5U2crk" title="Marble Race" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
+      <div class="hint" style="margin-top:10px"><a href="https://www.youtube.com/shorts/A1zIf5U2crk" target="_blank" rel="noopener" style="color:var(--accent)">open on YouTube ↗</a> · it's a vertical Short, so it'll have bars on the sides inline</div>
       <div class="q-actions">
         <button class="btn" id="mDone">Done → next round</button>
       </div>
@@ -1147,148 +1152,31 @@ function renderMarble(){
 /* ---------- Sumo Showdown (knockout, winner randomised every bout) ---------- */
 function renderSumo(){
   const stage=$("#stage"); stage.innerHTML='';
-  state.sumo = state.sumo || {picks:{}, order:[], sfWin:[null,null], finalWin:null};
-  const S = state.sumo;
-  const allPicked = Object.keys(S.picks).length >= state.teams.length;
-
-  // PHASE 1 — teams pick a wrestler
-  if(!allPicked){
-    const nextTeam = state.teams.find(t=>!(t.id in S.picks));
-    stage.appendChild(el(`
-      <div class="fade-in">
-        <div class="kicker">Round 07 · Interlude · pure chance</div>
-        <h2 class="title">Sumo Showdown</h2>
-        <p class="lead">Four wrestlers, four teams, knockout to the end. The catch: every bout is a coin-flip — no wrestler is better than another, it's all luck. <b style="color:var(--gold)">${escapeHtml(nextTeam.name)}</b>, pick your champion.</p>
-        <div class="sumogrid" id="sumoGrid"></div>
-        <div class="row between" style="margin-top:16px">
-          <span class="hint">Picked: ${state.teams.filter(t=>t.id in S.picks).map(t=>escapeHtml(t.name)).join(', ')||'—'}</span>
-          <button class="btn ghost sm" id="randPicks">🎲 Randomise all picks</button>
-        </div>
-      </div>`));
-    $("#sumoGrid").innerHTML = SUMOS.map((s,i)=>{
-      const owners = state.teams.filter(t=>S.picks[t.id]===i).map(t=>t.name);
-      return `<div class="sumocard ${owners.length?'chosen':''}" data-sumo="${i}" style="--sc:${s.colour}">
-        <div class="emoji">${s.emoji}</div>
-        <div class="snm">${escapeHtml(s.name)}</div>
-        <div class="stitle">${escapeHtml(s.title)}</div>
-        <div class="sstats">
-          <span class="stat">Weight<b>${s.weight}</b></span>
-          <span class="stat">Record<b>${s.record}</b></span>
-        </div>
-        <div class="stat" style="margin-top:8px">Signature: <b style="display:inline">${escapeHtml(s.move)}</b></div>
-        <div class="staunt">“${escapeHtml(s.taunt)}”</div>
-        ${owners.length?`<div class="pickedby">${owners.map(escapeHtml).join(' & ')}</div>`:''}
-      </div>`;
-    }).join('');
-    $("#sumoGrid").querySelectorAll('[data-sumo]').forEach(c=>c.onclick=()=>{
-      S.picks[nextTeam.id]=+c.dataset.sumo; save(); render();
-    });
-    $("#randPicks").onclick=()=>{ state.teams.forEach(t=> S.picks[t.id]=Math.floor(Math.random()*SUMOS.length)); save(); render(); };
-    return;
-  }
-
-  // build bracket seeding once
-  if(S.order.length===0){ S.order=[...state.teams].sort(()=>Math.random()-0.5).map(t=>t.id); save(); }
-
-  const teamById = id=>state.teams.find(t=>t.id===id);
-  const sumoOf = id=>SUMOS[S.picks[id]];
-
-  function fighterHtml(teamId, state2){ // state2: 'win'|'lose'|'' 
-    if(teamId===null) return `<div class="fighter tbd">Awaiting winner…</div>`;
-    const t=teamById(teamId), s=sumoOf(teamId);
-    return `<div class="fighter ${state2||''}" style="--sc:${s.colour}">
-      <div class="f-emoji">${s.emoji}</div>
-      <div class="f-team">${escapeHtml(t.name)}</div>
-      <div class="f-sumo">${escapeHtml(s.name)}</div>
-    </div>`;
-  }
-
-  function boutHtml(label, aId, bId, winnerId, key, locked, isFinal){
-    const aState = winnerId==null?'':(winnerId===aId?'win':'lose');
-    const bState = winnerId==null?'':(winnerId===bId?'win':'lose');
-    const ready = aId!=null && bId!=null;
-    return `<div class="bout ${isFinal?'final':''}">
-      <div class="bout-label">${label}</div>
-      <div class="bout-row">
-        ${fighterHtml(aId,aState)}
-        <div class="vs" id="vs-${key}">VS</div>
-        ${fighterHtml(bId,bState)}
-      </div>
-      ${ready && winnerId==null ? `<button class="btn gold fight-btn" data-fight="${key}">⚡ FIGHT!</button>` : ''}
-      ${winnerId!=null ? `<div class="hint" style="text-align:center;margin-top:12px;color:var(--gold)">${escapeHtml(teamById(winnerId).name)} advances — ${escapeHtml(sumoOf(winnerId).name)} wins by ${randMove()}</div>` : ''}
-    </div>`;
-  }
-
-  const n = S.order.length;
-  const a0=S.order[0],a1=S.order[1],b0=S.order[2],b1=S.order[3];
-
+  let sel = state._sumoVid||0;
+  if(sel>=SUMO_VIDEOS.length) sel=0;
+  const v=SUMO_VIDEOS[sel];
   stage.appendChild(el(`
     <div class="fade-in">
-      <div class="kicker">Round 07 · Interlude · pure chance</div>
+      <div class="kicker">Round 06 · Interlude · pure chance</div>
       <h2 class="title">Sumo Showdown</h2>
-      <p class="lead">Knockout bracket. Hit FIGHT and the winner is drawn at random — re-run it and it could flip. Last wrestler standing takes the belt. Award points by hand however you like.</p>
-      <div class="bracket" id="bracket"></div>
-      <div class="row between" style="margin-top:16px">
-        <button class="btn ghost sm" id="reSumo">Reset showdown</button>
-        <button class="btn ghost sm" id="sumoDone">Done → next round</button>
-      </div>
+      <p class="lead">Before each clip, every team backs a wrestler — the giant or the little one, left or right. Hit play, watch who wins, and award points by hand (tap a score up top). No skill, all spectacle.</p>
+      <div class="videoframe"><iframe id="sumoIframe" src="https://www.youtube.com/embed/${v.id}" title="${escapeHtml(v.title)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
+      <div class="hint" style="text-align:center;margin-top:10px"><b style="color:var(--fg)">${escapeHtml(v.title)}</b> — ${escapeHtml(v.desc)} · <a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" style="color:var(--accent)">open on YouTube ↗</a></div>
+      <div class="vidpicker" id="vidPicker"></div>
+      <p class="hint" style="text-align:center;margin-top:14px">If a clip won't play inline, use the “open on YouTube” link to show it full-screen.</p>
+      <div class="q-actions"><button class="btn ghost" id="sumoDone">Done → next round</button></div>
     </div>`));
-
-  function drawBracket(){
-    const champDone = S.finalWin!=null;
-    let html='';
-    if(n>=4){
-      // 4 teams: two semis feed the final
-      const finalA = S.sfWin[0], finalB = S.sfWin[1];
-      html = boutHtml('Semi-final 1', a0, a1, S.sfWin[0], 'sf0', false, false)
-           + boutHtml('Semi-final 2', b0, b1, S.sfWin[1], 'sf1', false, false)
-           + boutHtml('🏆 The Final', finalA, finalB, S.finalWin, 'final', false, true);
-    } else if(n===3){
-      // 3 teams: one semi, winner faces the third (who byes straight to the final)
-      const finalA = S.sfWin[0], finalB = b0; // b0 = S.order[2]
-      html = boutHtml('Semi-final', a0, a1, S.sfWin[0], 'sf0', false, false)
-           + `<div class="hint" style="text-align:center">${escapeHtml(teamById(b0).name)} gets a bye straight to the final 🍀</div>`
-           + boutHtml('🏆 The Final', finalA, finalB, S.finalWin, 'final', false, true);
-    } else {
-      // 2 teams: just a final
-      html = boutHtml('🏆 The Final', a0, a1, S.finalWin, 'final', false, true);
-    }
-    $("#bracket").innerHTML = html +
-      (champDone ? `<div class="champion-banner fade-in">
-          <div class="ce">${sumoOf(S.finalWin).emoji}🏆</div>
-          <div class="ct">${escapeHtml(teamById(S.finalWin).name)} — Champions</div>
-          <div class="hint" style="margin-top:6px">${escapeHtml(sumoOf(S.finalWin).name)}, “${escapeHtml(sumoOf(S.finalWin).title)}”, is undefeated tonight.</div>
-        </div>` : '');
-
-    $("#bracket").querySelectorAll('[data-fight]').forEach(btn=>btn.onclick=()=>{
-      const key=btn.dataset.fight;
-      btn.disabled=true; btn.textContent='💥 …';
-      const vs=$("#vs-"+key); if(vs){ vs.textContent='💥'; vs.classList.add('clash'); }
-      setTimeout(()=>{
-        if(key==='sf0'){ S.sfWin[0]= Math.random()<0.5?a0:a1; }
-        else if(key==='sf1'){ S.sfWin[1]= Math.random()<0.5?b0:b1; }
-        else if(key==='final'){
-          const fA = (n>=4)?S.sfWin[0]:(n===3?S.sfWin[0]:a0);
-          const fB = (n>=4)?S.sfWin[1]:(n===3?b0:a1);
-          S.finalWin= Math.random()<0.5?fA:fB;
-        }
-        save(); drawBracket();
-      },1300);
-    });
-  }
-  drawBracket();
-
-  $("#reSumo").onclick=()=>{ if(confirm('Reset the whole showdown (picks too)?')){ state.sumo={picks:{},order:[],sfWin:[null,null],finalWin:null}; save(); render(); } };
-  $("#sumoDone").onclick=()=>renderRoundComplete('sumo','Sumo Showdown',()=>{ state.sumo={picks:{},order:[],sfWin:[null,null],finalWin:null}; save(); render(); });
+  $("#vidPicker").innerHTML=SUMO_VIDEOS.map((vid,i)=>`<button class="vidbtn ${i===sel?'on':''}" data-vid="${i}">${escapeHtml(vid.title)}</button>`).join('');
+  $("#vidPicker").querySelectorAll('[data-vid]').forEach(b=>b.onclick=()=>{ state._sumoVid=+b.dataset.vid; save(); render(); });
+  $("#sumoDone").onclick=()=>renderRoundComplete('sumo','Sumo Showdown',()=>render());
 }
-function randMove(){ const m=["a thunderous shove","ring-out","the Belly Bounce","a last-second slap","sheer momentum","a crowd-pleasing flop","the Ground-Quake Stomp"]; return m[Math.floor(Math.random()*m.length)]; }
 
 /* ---------- Heads or Tails ---------- */
 function renderHeads(){
   const stage=$("#stage"); stage.innerHTML='';
   stage.appendChild(el(`
     <div class="fade-in" style="text-align:center">
-      <div class="kicker">Round 09 · Elimination interlude</div>
+      <div class="kicker">Round 08 · Elimination interlude</div>
       <h2 class="title">Heads or Tails</h2>
       <p class="lead" style="margin:0 auto">Everyone stands. Hands on head = heads, hands on hips = tails. Flip — wrong guessers sit. Last one standing wins a prize, or +3 for their team.</p>
       <div class="coin" id="coin">?</div>
@@ -1327,7 +1215,7 @@ function renderFinal(){
   if(state.finalPhase==='wager'){
     stage.appendChild(el(`
       <div class="fade-in">
-        <div class="kicker">Round 10 · The big one</div>
+        <div class="kicker">Round 09 · The big one</div>
         <h2 class="title">Final Wager</h2>
         <p class="lead">Each team secretly wagers <b>any amount up to their current score</b>. One hard question. Right = gain it, wrong = lose it. Set the secret wagers, then reveal the question.</p>
         <div class="card" style="margin-top:22px"><div class="kicker dim">Secret wagers</div><div id="wagerGrid"></div></div>
@@ -1354,7 +1242,7 @@ function renderFinal(){
   // question phase
   stage.appendChild(el(`
     <div class="fade-in">
-      <div class="kicker">Round 10 · Final Wager · question</div>
+      <div class="kicker">Round 09 · Final Wager · question</div>
       <h2 class="title" style="font-size:clamp(1.8rem,5vw,2.6rem)">Final Wager</h2>
       <div class="card" style="margin-top:18px">
         <div class="qstage">
@@ -1456,7 +1344,6 @@ function render(){
     case 'category': renderCategory(); break;
     case 'soundsong': renderSoundSong(); break;
     case 'marble': renderMarble(); break;
-    case 'picture': renderPicture(); break;
     case 'celebrity': renderCelebrity(); break;
     case 'sumo': renderSumo(); break;
     case 'movies': renderMovies(); break;
