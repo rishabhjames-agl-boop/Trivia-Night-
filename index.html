@@ -481,6 +481,37 @@ const MOVIES = {
   ]
 };
 
+/* The Finale — read-aloud, twist questions, 5 waves × 3 (one per team) */
+const FINALE = {
+  tiers:[
+    {tier:1, label:"The obvious answer is wrong", qs:[
+      {q:"What does the distress signal 'SOS' actually stand for?", a:"Nothing — it was picked for its simple Morse code, not as an abbreviation."},
+      {q:"What's the proper name for the little plastic or metal tip at the end of a shoelace?", a:"An aglet."},
+      {q:"Which is actually bigger by land area: Greenland or Australia?", a:"Australia — about 3.5 times larger. Map projections make Greenland look huge."},
+    ]},
+    {tier:2, label:"Older than you'd think", qs:[
+      {q:"Which appeared on Earth first: sharks or trees?", a:"Sharks — by roughly 100 million years."},
+      {q:"Were woolly mammoths still alive when the Great Pyramid of Giza was built?", a:"Yes — a population survived on an Arctic island until around 1650 BC."},
+      {q:"Is Harvard University older than calculus?", a:"Yes — Harvard was founded in 1636; calculus came in the late 1600s."},
+    ]},
+    {tier:3, label:"Counterintuitive but true", qs:[
+      {q:"What is the largest desert in the world?", a:"Antarctica — a desert is defined by low rainfall, not heat."},
+      {q:"True or false: Australia is wider than the Moon.", a:"True — Australia is about 4,000 km wide; the Moon is about 3,475 km across."},
+      {q:"What shape is a wombat's poop?", a:"Cube-shaped — the only animal known to produce cubic droppings."},
+    ]},
+    {tier:4, label:"Hidden in plain sight", qs:[
+      {q:"What does the word 'laser' stand for?", a:"Light Amplification by Stimulated Emission of Radiation."},
+      {q:"What is the dot above a lowercase 'i' or 'j' called?", a:"A tittle."},
+      {q:"Which country has the most post offices in the world?", a:"India."},
+    ]},
+    {tier:5, label:"The closer", qs:[
+      {q:"A clock takes 5 seconds to strike 6 o'clock. How long does it take to strike 12 o'clock?", a:"11 seconds — you count the gaps between chimes, not the chimes."},
+      {q:"What colour is an octopus's blood?", a:"Blue — it uses copper-based hemocyanin instead of iron."},
+      {q:"Which large land mammal is famously unable to jump at all?", a:"The elephant."},
+    ]},
+  ]
+};
+
 /* Easy bank — sprinkle as needed */
 const EASY_BANK = [
   {q:"What's the capital of France?", a:"Paris"},
@@ -512,12 +543,13 @@ const SUMO_VIDEOS = [
    STATE
    ============================================================ */
 let state = {
-  version: 4,
+  version: 5,
   teams: TEAMS_DEFAULT.map((t,i)=>({...t, score:0, id:i})),
   view: "intro",
   done: {},                 // round key -> true
   gkIdx: 0,                 // pointer within flattened GK list
   movIdx: 0,
+  finIdx: 0,                // finale pointer
   catPicks: {},             // teamId -> categoryKey
   catOrder: [],             // randomised team order for picking
   catActiveTeam: null,      // which team's questions are showing
@@ -526,7 +558,7 @@ let state = {
   picReveal: {},            // picture idx -> reveal level
   picImg: {},               // picture idx -> dataURL
 };
-try{ const saved = localStorage.getItem('triviaState'); if(saved){ const p=JSON.parse(saved); if(p && p.version===4){ state = p; } } }catch(e){}
+try{ const saved = localStorage.getItem('triviaState'); if(saved){ const p=JSON.parse(saved); if(p && p.version===5){ state = p; } } }catch(e){}
 function save(){ try{ localStorage.setItem('triviaState', JSON.stringify(state)); }catch(e){} }
 
 /* ============================================================
@@ -542,7 +574,8 @@ const RUNORDER = [
   {key:"sumo",      label:"Sumo Showdown",    num:"06"},
   {key:"movies",    label:"Movies & TV",      num:"07"},
   {key:"heads",     label:"Heads or Tails",   num:"08"},
-  {key:"final",     label:"Final Wager",      num:"09"},
+  {key:"finale",    label:"The Finale",       num:"09"},
+  {key:"final",     label:"Final Wager",      num:"10"},
   {key:"bank",      label:"Easy Bank",        num:"+"},
 ];
 
@@ -831,6 +864,14 @@ function renderMovies(){
     kicker:"Round 07 · Read-aloud + auction",
     title:"Movies & TV",
     lead:"Screen and streaming. Same rotation: one question per team per tier, climbing in difficulty."
+  });
+}
+
+function renderFinaleRound(){
+  renderReadAloud('finale',FINALE,'finIdx',{
+    kicker:"Round 09 · The Finale · read-aloud + auction",
+    title:"The Finale",
+    lead:"Five waves of should've-known-that twists — one question per team per wave. The obvious answer is usually wrong, so a pass is dangerous: the auction's wide open."
   });
 }
 
@@ -1297,7 +1338,7 @@ function renderFinal(){
   if(state.finalPhase==='wager'){
     stage.appendChild(el(`
       <div class="fade-in">
-        <div class="kicker">Round 09 · The big one</div>
+        <div class="kicker">Round 10 · The big one</div>
         <h2 class="title">Final Wager</h2>
         <p class="lead">Each team secretly wagers <b>any amount up to their current score</b>. One hard question. Right = gain it, wrong = lose it. Set the secret wagers, then reveal the question.</p>
         <div class="card" style="margin-top:22px"><div class="kicker dim">Secret wagers</div><div id="wagerGrid"></div></div>
@@ -1324,7 +1365,7 @@ function renderFinal(){
   // question phase
   stage.appendChild(el(`
     <div class="fade-in">
-      <div class="kicker">Round 09 · Final Wager · question</div>
+      <div class="kicker">Round 10 · Final Wager · question</div>
       <h2 class="title" style="font-size:clamp(1.8rem,5vw,2.6rem)">Final Wager</h2>
       <div class="card" style="margin-top:18px">
         <div class="qstage">
@@ -1430,6 +1471,7 @@ function render(){
     case 'sumo': renderSumo(); break;
     case 'movies': renderMovies(); break;
     case 'heads': renderHeads(); break;
+    case 'finale': renderFinaleRound(); break;
     case 'final': renderFinal(); break;
     case 'bank': renderBank(); break;
     default: renderIntro();
